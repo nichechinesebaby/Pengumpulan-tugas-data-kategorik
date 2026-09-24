@@ -1,0 +1,295 @@
+---
+title: "Tugas 2 — Penyajian Data Kategori"
+subtitle: "Tabel Kontingensi, Proporsi, Denominator, dan Visualisasi"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-title: "Daftar Isi"
+    toc-depth: 2
+    toc-location: right
+    code-copy: false
+    code-tools: false
+    number-sections: true
+    embed-resources: true
+    title-block-banner: true
+execute:
+  echo: true
+  warning: false
+  message: false
+lang: id
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+identitas <- read.csv("identitas_tugas.csv", stringsAsFactors = FALSE)
+file_data <- file.path("data", identitas$file_data[1])
+if (!file.exists(file_data)) file_data <- identitas$file_data[1]
+data <- read.csv(file_data, stringsAsFactors = FALSE)
+```
+
+::: {.student-card}
+<div class="label">Mahasiswa</div>
+<div class="value">`r identitas$Nama[1]`</div>
+
+<div class="label">NIM</div>
+<div class="value">`r identitas$NIM[1]`</div>
+
+<div class="label">Kode Tugas</div>
+<div class="value">`r identitas$kode_tugas[1]`</div>
+:::
+
+::: {.learning-box}
+**Tujuan tugas.** Menyusun tabel kontingensi, membedakan proporsi
+*joint*–marjinal–bersyarat, memilih denominator yang tepat, serta memilih
+visualisasi yang sesuai untuk membaca komposisi data kategori.
+:::
+
+::: {.callout-note}
+## Pola kerja
+**ask the question → choose the denominator → compute → visualize → explain**
+:::
+
+# 1. Tabel Kontingensi
+
+Variabel yang digunakan adalah `Jurusan` dan `Platform`.
+
+Buat tabel kontingensi `Jurusan × Platform`, kemudian tampilkan total baris,
+total kolom, dan *grand total*.
+
+::: {.callout-tip}
+## Petunjuk kode
+```r
+tab <- table(..., ...)
+addmargins(tab)
+```
+:::
+
+```{r}
+tab <- table(data$Jurusan, data$Platform)
+names(dimnames(tab)) <- c("Jurusan", "Platform")
+addmargins(tab)
+```
+
+Tuliskan:
+1. *grand total* data;
+2. satu nilai sel yang menurut Anda menarik, beserta arti kombinasi kategorinya.
+
+::: {.answer-box}
+**Jawaban Anda**
+
+1. *Grand total* data adalah **93** observasi.
+2. Sel **Sistem Informasi × Google Meet = 22**, yaitu 22 mahasiswa Sistem Informasi yang menggunakan Google Meet. Ini sel terbesar pada tabel.
+:::
+
+
+# 2. Proporsi Gabungan dan Marjinal
+
+Hitung:
+- proporsi gabungan (*joint*) untuk seluruh sel;
+- proporsi marjinal untuk `Platform`.
+
+::: {.callout-tip}
+## Petunjuk kode
+```r
+joint <- prop.table(...)
+platform_marginal <- margin.table(..., margin = ...) / sum(...)
+```
+:::
+
+```{r}
+joint <- prop.table(tab)
+round(joint, 4)
+
+platform_marginal <- margin.table(tab, margin = 2) / sum(tab)
+round(platform_marginal, 4)
+```
+
+Jawab pertanyaan berikut.
+
+1. Platform apa yang paling dominan secara keseluruhan?
+2. Berapa persentasenya?
+3. Apa denominator yang digunakan pada proporsi marjinal tersebut?
+
+::: {.answer-box}
+**Interpretasi Anda**
+
+1. **Google Meet** adalah platform paling dominan secara keseluruhan.
+2. Persentasenya **50,5%** (47 dari 93); LMS Kampus dan Zoom masing-masing 24,7% (23 dari 93).
+3. Denominatornya adalah **grand total seluruh data (n = 93)**, karena proporsi marjinal dihitung terhadap semua observasi.
+:::
+
+
+# 3. Proporsi Bersyarat
+
+Pada bagian ini Anda akan melihat bahwa **arah kondisi menentukan denominator**.
+
+## 3.1 Platform | Jurusan
+
+Hitung proporsi `Platform | Jurusan` sehingga setiap baris `Jurusan`
+berjumlah 1 (atau 100%).
+
+::: {.callout-tip}
+## Petunjuk kode
+```r
+row_pct <- prop.table(..., margin = ...)
+rowSums(row_pct)
+```
+
+Pilih margin yang membuat **setiap jurusan** menjadi denominator.
+:::
+
+```{r}
+row_pct <- prop.table(tab, margin = 1)
+round(row_pct, 4)
+rowSums(row_pct)
+```
+
+Fokuskan interpretasi pada jurusan berikut.
+
+```{r}
+cat("Jurusan fokus :", identitas$fokus_jurusan[1], "\n")
+```
+
+Tuliskan satu kalimat tentang komposisi platform di dalam jurusan tersebut.
+
+::: {.answer-box}
+**Interpretasi Platform | Jurusan**
+
+Di dalam jurusan Sains Data (n = 28), 50,0% mahasiswa memakai Google Meet, 28,6% LMS Kampus, dan 21,4% Zoom, sehingga Google Meet paling banyak digunakan.
+:::
+
+
+## 3.2 Jurusan | Platform
+
+Sekarang balik pertanyaannya. Hitung proporsi `Jurusan | Platform`
+sehingga setiap kolom `Platform` berjumlah 1 (atau 100%).
+
+::: {.callout-tip}
+## Petunjuk kode
+```r
+col_pct <- prop.table(..., margin = ...)
+colSums(col_pct)
+```
+
+Pilih margin yang membuat **setiap platform** menjadi denominator.
+:::
+
+```{r}
+col_pct <- prop.table(tab, margin = 2)
+round(col_pct, 4)
+colSums(col_pct)
+```
+
+Fokuskan interpretasi pada platform berikut.
+
+```{r}
+cat("Platform fokus :", identitas$fokus_platform[1], "\n")
+```
+
+Tuliskan satu kalimat tentang komposisi jurusan di dalam platform tersebut.
+
+::: {.answer-box}
+**Interpretasi Jurusan | Platform**
+
+Di antara pengguna Zoom (n = 23), 52,2% berasal dari Sistem Informasi, 26,1% dari Sains Data, dan 21,7% dari Statistika, sehingga pengguna Zoom paling banyak berasal dari Sistem Informasi.
+:::
+
+
+# 4. Memahami Denominator
+
+Jawab singkat.
+
+1. Apa denominator pada proporsi *joint*?
+2. Apa denominator pada `Platform | Jurusan`?
+3. Apa denominator pada `Jurusan | Platform`?
+4. Mengapa membalik arah kondisi dapat mengubah interpretasi?
+5. Mengapa *count* saja dapat menyesatkan ketika ukuran kelompok berbeda?
+
+::: {.answer-box}
+**Jawaban Anda**
+
+1. Denominator proporsi *joint* adalah **grand total** (n = 93).
+2. Denominator `Platform | Jurusan` adalah **total tiap baris (jurusan)**: 28 untuk Sains Data, 42 untuk Sistem Informasi, 23 untuk Statistika.
+3. Denominator `Jurusan | Platform` adalah **total tiap kolom (platform)**: 47 untuk Google Meet, 23 untuk LMS Kampus, 23 untuk Zoom.
+4. Karena arah kondisi mengubah kelompok pembanding, sehingga pertanyaan yang dijawab pun berbeda. Contohnya, 52,2% pengguna Zoom berasal dari Sistem Informasi (`Jurusan | Platform`), tetapi hanya 28,6% mahasiswa Sistem Informasi yang memakai Zoom (`Platform | Jurusan`). Keduanya tidak boleh saling dipertukarkan.
+5. Karena kelompok yang lebih besar akan memiliki count lebih besar walau komposisinya sama. Sistem Informasi (42) punya count Google Meet lebih besar dari Statistika (11) terutama karena ukurannya lebih besar, padahal proporsinya mirip (52,4% vs 47,8%). Proporsi menormalkan ukuran kelompok sehingga perbandingan adil.
+:::
+
+
+# 5. Visualisasi Komposisi
+
+Buat **100% stacked bar** untuk membandingkan komposisi `Platform`
+pada setiap `Jurusan`.
+
+::: {.callout-tip}
+## Petunjuk kode
+```r
+library(ggplot2)
+
+ggplot(..., aes(x = ..., fill = ...)) +
+  geom_bar(position = "fill") +
+  labs(...)
+```
+:::
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Jurusan, fill = Platform)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Komposisi Platform Pembelajaran pada Setiap Jurusan",
+    x = "Jurusan", y = "Persentase dalam jurusan", fill = "Platform"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+Jawab dua hal berikut.
+
+1. Tuliskan satu kalimat interpretasi grafik.
+2. Mengapa **100% stacked bar** lebih tepat daripada *grouped count bar*
+   jika tujuan kita adalah membandingkan **komposisi** platform antarjurusan?
+
+::: {.answer-box}
+**Interpretasi dan alasan pemilihan visual**
+
+1. Pada ketiga jurusan, Google Meet memiliki segmen terbesar (sekitar 48–52%), dan komposisi platform relatif mirip antarjurusan. Perbedaan yang tampak: LMS Kampus relatif lebih besar di Statistika (30,4%), sedangkan Zoom relatif lebih besar di Sistem Informasi (28,6%).
+2. Karena setiap batang dinormalisasi ke 100% sehingga tinggi batang sama, dan yang dibandingkan adalah **proporsi dalam jurusan**. Pada *grouped count bar*, jurusan dengan jumlah mahasiswa lebih besar (Sistem Informasi) tampak dominan hanya karena ukuran kelompoknya, sehingga komposisi antarjurusan sulit dibandingkan secara adil.
+:::
+
+
+# 6. Kesimpulan
+
+Tuliskan **4 poin singkat**:
+
+1. satu temuan dari proporsi marjinal;
+2. satu temuan dari proporsi bersyarat;
+3. satu temuan dari visualisasi;
+4. satu kalimat kehati-hatian dalam membaca pola deskriptif.
+
+::: {.answer-box}
+**Kesimpulan Anda**
+
+1. Secara marjinal, Google Meet paling dominan (50,5% dari 93 mahasiswa), sedangkan LMS Kampus dan Zoom masing-masing 24,7%.
+2. Secara bersyarat, komposisi platform dalam tiap jurusan mirip (Google Meet 47,8–52,4%), tetapi Sistem Informasi paling banyak memakai Zoom (28,6%) dan Statistika paling banyak memakai LMS Kampus (30,4%).
+3. Visualisasi 100% stacked bar memperlihatkan bahwa proporsi Google Meet hampir sama pada ketiga jurusan, dan perbedaan hanya tampak pada porsi LMS Kampus dan Zoom.
+4. Pola ini bersifat deskriptif dan berasal dari sampel kecil (n = 93), sehingga perbedaan proporsi belum dapat disimpulkan sebagai hubungan statistik tanpa uji inferensial (misalnya uji chi-square).
+:::
+
+
+::: {.callout-important}
+## Ingat
+Perbedaan proporsi yang terlihat pada tabel atau grafik masih bersifat
+**deskriptif**. Jangan langsung menyatakan ada hubungan statistik sebelum
+melakukan uji inferensial yang sesuai.
+:::
+
+::: {.footer-note}
+**Analisis Data Kategori — Tugas 2**  
+Question → Denominator → Compute → Visualize → Explain
+:::
